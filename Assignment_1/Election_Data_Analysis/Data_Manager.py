@@ -43,6 +43,42 @@ def group_and_aggregate_data(df: pd.DataFrame,
     return grouped_data
 
 
+def remove_sparse_columns(df: pd.DataFrame, threshold: int) -> pd.DataFrame:
+    """
+    Remove party columns from DataFrame where total votes are below the threshold.
+    Administrative columns (city_name and ballot_code) are preserved.
+
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Input DataFrame
+    threshold : int
+        Minimum total votes for a party to be retained
+
+    Returns:
+    --------
+    pd.DataFrame with administrative columns and party columns that pass the threshold
+    """
+    # Get the first two columns (we know these are city_name and ballot_code)
+    admin_cols = list(df.columns[:2])
+
+    # Get party columns (everything except first two columns)
+    party_cols = list(df.columns[2:])
+
+    # Calculate which parties to keep
+    parties_to_keep = []
+    for col in party_cols:
+        total_votes = pd.to_numeric(df[col]).sum()
+        if total_votes >= threshold:
+            parties_to_keep.append(col)
+
+    # Combine admin columns with filtered party columns
+    final_columns = admin_cols + parties_to_keep
+
+    # Return DataFrame with selected columns
+    return df[final_columns]
+
+
 if __name__ == '__main__':
     pass
 
