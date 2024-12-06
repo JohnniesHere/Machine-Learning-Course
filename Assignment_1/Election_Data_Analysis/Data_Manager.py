@@ -60,10 +60,12 @@ def remove_sparse_columns(df: pd.DataFrame, threshold: int) -> pd.DataFrame:
     pd.DataFrame with administrative columns and party columns that pass the threshold
     """
     # Get the first two columns (we know these are city_name and ballot_code)
-    admin_cols = list(df.columns[:2])
+
+    df_copy = df
+    admin_cols = list(df_copy.columns[:2])
 
     # Get party columns (everything except first two columns)
-    party_cols = list(df.columns[2:])
+    party_cols = list(df_copy.columns[2:])
 
     # Calculate which parties to keep
     parties_to_keep = []
@@ -76,7 +78,7 @@ def remove_sparse_columns(df: pd.DataFrame, threshold: int) -> pd.DataFrame:
     final_columns = admin_cols + parties_to_keep
 
     # Return DataFrame with selected columns
-    return df[final_columns]
+    return df_copy[final_columns]
 
 
 if __name__ == '__main__':
