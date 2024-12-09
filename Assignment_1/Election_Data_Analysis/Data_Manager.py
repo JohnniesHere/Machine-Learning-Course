@@ -40,6 +40,10 @@ def group_and_aggregate_data(df: pd.DataFrame,
     # Group by specified column and aggregate party votes
     grouped_data = df.groupby(group_by_column)[party_columns].agg(agg_func)
 
+    # Reset the index to make the grouping column a regular column
+    # This is important since the result of groupby() makes the arg the indexing of the newly generated table
+    grouped_data = grouped_data.reset_index()
+
     return grouped_data
 
 
