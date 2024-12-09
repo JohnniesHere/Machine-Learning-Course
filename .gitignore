@@ -2,3 +2,13 @@
 **/.idea/workspace.xml
 **/.idea/.name
 **/.idea/Election_Data_Analysis.iml
+# PyCharm project files
+**/*.iml
+**/.idea/*.xml
+**/.idea/profiles_settings.xml
+**/.idea/workspace.xml
+**/.idea/modules.xml
+**/.idea/vcs.xml
+**/.idea/Project_Default.xml
+**/.idea/
+**/*.iml
