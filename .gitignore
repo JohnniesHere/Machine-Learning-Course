@@ -12,3 +12,5 @@
 **/.idea/Project_Default.xml
 **/.idea/
 **/*.iml
+.idea/
+*.iml
