@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import io
+from designs import apply_theme, get_theme_names
 
 from Data_Manager import (
     load_data,
@@ -26,6 +27,19 @@ def load_uploaded_file(uploaded_file) -> pd.DataFrame:
 
 
 def main():
+    # Theme selector in sidebar
+    st.sidebar.header("App Settings")
+
+    # Theme selector
+    theme = st.sidebar.selectbox(
+        "Choose Theme",
+        get_theme_names(),
+        key="theme_selector"
+    )
+
+    # Apply selected theme
+    apply_theme(theme)
+
     st.title("Election Data Analysis Tool")
     st.sidebar.header("Analysis Parameters")
 
