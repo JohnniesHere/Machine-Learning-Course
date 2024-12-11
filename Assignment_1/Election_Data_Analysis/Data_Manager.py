@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 def load_data(filepath: str) -> pd.DataFrame:
@@ -132,6 +135,296 @@ def dimensionality_reduction(df: pd.DataFrame, num_components: int, meta_columns
     return final_df
 
 
+def create_pca_visualizations(pca_df, agg_city_votes, filtered_df, initial_view='2d'):
+    """
+    Create both 2D and 3D PCA visualizations for city and party voting patterns with toggle buttons.
+
+    Args:
+        pca_df (pd.DataFrame): PCA results for cities
+        agg_city_votes (pd.DataFrame): Aggregated voting data
+        filtered_df (pd.DataFrame): Filtered DataFrame for 3D PCA
+        initial_view (str): Initial view mode ('2d' or '3d')
+
+    Returns:
+        None (displays visualizations directly)
+    """
+
+    # Input validation
+    if initial_view not in ['2d', '3d']:
+        raise ValueError("initial_view must be either '2d' or '3d'")
+
+    if not all(isinstance(df, pd.DataFrame) for df in [pca_df, agg_city_votes, filtered_df]):
+        raise TypeError("All data arguments must be pandas DataFrames")
+
+    # Create 3D PCA data
+    pca_df_3d = dimensionality_reduction(filtered_df, 3, ['city_name', 'ballot_code']).drop(columns='ballot_code')
+
+    # Prepare party data
+    party_data = agg_city_votes.set_index('city_name').transpose()
+    party_data = party_data.drop('ballot_code')
+    party_data = party_data.loc[:, party_data.sum() >= 1000]
+
+    # Create party PCA data (2D and 3D)
+    party_pca = dimensionality_reduction(
+        party_data.reset_index().rename(columns={'index': 'party_name'}),
+        2,
+        ['party_name']
+    )
+
+    party_pca_3d = dimensionality_reduction(
+        party_data.reset_index().rename(columns={'index': 'party_name'}),
+        3,
+        ['party_name']
+    )
+
+    # Create figure with secondary y-axis
+    city_fig = go.Figure()
+
+    # Add 2D scatter
+    city_fig.add_trace(
+        go.Scatter(
+            x=pca_df['PC1'],
+            y=pca_df['PC2'],
+            mode='markers',
+            name='Cities 2D',
+            text=pca_df['city_name'],
+            hovertemplate="<br>".join([
+                "City: %{text}",
+                "PC1: %{x:.2f}",
+                "PC2: %{y:.2f}",
+                "<extra></extra>"
+            ]),
+            visible=(initial_view == '2d')
+        )
+    )
+
+    # Add 3D scatter
+    city_fig.add_trace(
+        go.Scatter3d(
+            x=pca_df_3d['PC1'],
+            y=pca_df_3d['PC2'],
+            z=pca_df_3d['PC3'],
+            mode='markers',
+            name='Cities 3D',
+            text=pca_df_3d['city_name'],
+            hovertemplate="<br>".join([
+                "City: %{text}",
+                "PC1: %{x:.2f}",
+                "PC2: %{y:.2f}",
+                "PC3: %{z:.2f}",
+                "<extra></extra>"
+            ]),
+            visible=(initial_view == '3d')
+        )
+    )
+
+    # Create buttons for updating the chart
+    updatemenus = [
+        dict(
+            type="buttons",
+            direction="right",
+            x=0.7,
+            y=1.2,
+            showactive=True,
+            buttons=[
+                dict(
+                    label="2D View",
+                    method="update",
+                    args=[
+                        {"visible": [True, False]},
+                        {
+                            "title": "City Voting Patterns - 2D PCA Analysis",
+                            "scene": {"visible": False},
+                            "xaxis": {"visible": True},
+                            "yaxis": {"visible": True},
+                            "zaxis": {"visible": False}
+                        }
+                    ]
+                ),
+                dict(
+                    label="3D View",
+                    method="update",
+                    args=[
+                        {"visible": [False, True]},
+                        {
+                            "title": "City Voting Patterns - 3D PCA Analysis",
+                            "scene": {
+                                "visible": True,
+                                "xaxis": {"title": "PC1"},
+                                "yaxis": {"title": "PC2"},
+                                "zaxis": {"title": "PC3"}
+                            },
+                            "xaxis": {"visible": False},
+                            "yaxis": {"visible": False}
+                        }
+                    ]
+                )
+            ]
+        )
+    ]
+
+    # Update city figure layout
+    city_fig.update_layout(
+        updatemenus=updatemenus,
+        plot_bgcolor='white',
+        width=1000,
+        height=800,
+        title_x=0.5,
+        scene=dict(
+            xaxis_title='PC1',
+            yaxis_title='PC2',
+            zaxis_title='PC3',
+            camera=dict(
+                up=dict(x=0, y=0, z=1),
+                center=dict(x=0, y=0, z=0),
+                eye=dict(x=1.5, y=1.5, z=1.5)
+            )
+        ),
+        xaxis=dict(
+            showgrid=True,
+            gridwidth=1,
+            gridcolor='LightGray',
+            zeroline=True,
+            zerolinewidth=1,
+            zerolinecolor='LightGray'
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridwidth=1,
+            gridcolor='LightGray',
+            zeroline=True,
+            zerolinewidth=1,
+            zerolinecolor='LightGray'
+        )
+    )
+
+    # Create similar figure for parties
+    party_fig = go.Figure()
+
+    # Add 2D scatter for parties
+    party_fig.add_trace(
+        go.Scatter(
+            x=party_pca['PC1'],
+            y=party_pca['PC2'],
+            mode='markers',
+            name='Parties 2D',
+            text=party_pca['party_name'],
+            hovertemplate="<br>".join([
+                "Party: %{text}",
+                "PC1: %{x:.2f}",
+                "PC2: %{y:.2f}",
+                "<extra></extra>"
+            ]),
+            visible=(initial_view == '2d')
+        )
+    )
+
+    # Add 3D scatter for parties
+    party_fig.add_trace(
+        go.Scatter3d(
+            x=party_pca_3d['PC1'],
+            y=party_pca_3d['PC2'],
+            z=party_pca_3d['PC3'],
+            mode='markers',
+            name='Parties 3D',
+            text=party_pca_3d['party_name'],
+            hovertemplate="<br>".join([
+                "Party: %{text}",
+                "PC1: %{x:.2f}",
+                "PC2: %{y:.2f}",
+                "PC3: %{z:.2f}",
+                "<extra></extra>"
+            ]),
+            visible=(initial_view == '3d')
+        )
+    )
+
+    # Add buttons to party figure
+    party_fig.update_layout(
+        updatemenus=[{
+            'type': "buttons",
+            'direction': "right",
+            'x': 0.7,
+            'y': 1.2,
+            'showactive': True,
+            'buttons': [
+                dict(
+                    label="2D View",
+                    method="update",
+                    args=[
+                        {"visible": [True, False]},
+                        {
+                            "title": "Party Voting Patterns - 2D PCA Analysis",
+                            "scene": {"visible": False},
+                            "xaxis": {"visible": True},
+                            "yaxis": {"visible": True},
+                            "zaxis": {"visible": False}
+                        }
+                    ]
+                ),
+                dict(
+                    label="3D View",
+                    method="update",
+                    args=[
+                        {"visible": [False, True]},
+                        {
+                            "title": "Party Voting Patterns - 3D PCA Analysis",
+                            "scene": {
+                                "visible": True,
+                                "xaxis": {"title": "PC1"},
+                                "yaxis": {"title": "PC2"},
+                                "zaxis": {"title": "PC3"}
+                            },
+                            "xaxis": {"visible": False},
+                            "yaxis": {"visible": False}
+                        }
+                    ]
+                )
+            ]
+        }],
+        width=1000,
+        height=800,
+        title_x=0.5,
+        scene=dict(
+            xaxis_title='PC1',
+            yaxis_title='PC2',
+            zaxis_title='PC3',
+            camera=dict(
+                up=dict(x=0, y=0, z=1),
+                center=dict(x=0, y=0, z=0),
+                eye=dict(x=1.5, y=1.5, z=1.5)
+            )
+        )
+    )
+
+    # Create and display tables
+    def create_table(data, title):
+        table = go.Figure(data=[go.Table(
+            header=dict(values=list(data.columns),
+                        fill_color='white',
+                        align='left'),
+            cells=dict(values=[data[col] for col in data.columns],
+                       fill_color='white',
+                       align='left'))
+        ])
+        table.update_layout(title=title, width=800, height=400)
+        return table
+
+    # Display all visualizations
+    print("City Comparison Analysis")
+    city_fig.show()
+    create_table(pca_df, 'City 2D PCA Results Table').show()
+    create_table(pca_df_3d, 'City 3D PCA Results Table').show()
+
+    print("\nParty Comparison Analysis")
+    party_fig.show()
+    create_table(party_pca, 'Party 2D PCA Results Table').show()
+    create_table(party_pca_3d, 'Party 3D PCA Results Table').show()
+
+    # Print summary statistics
+    print("\nSummary Statistics:")
+    print(f"Number of cities analyzed: {len(pca_df)}")
+    print(f"Number of parties analyzed: {len(party_pca)}")
 
 
 if __name__ == '__main__':
