@@ -282,6 +282,7 @@ def create_pca_visualizations(pca_df, agg_city_votes, filtered_df, initial_view=
         width=1000,
         height=800,
         title_x=0.5,
+        # Configuration for 3D scene
         scene=dict(
             xaxis_title='PC1',
             yaxis_title='PC2',
@@ -290,15 +291,18 @@ def create_pca_visualizations(pca_df, agg_city_votes, filtered_df, initial_view=
                 up=dict(x=0, y=0, z=1),
                 center=dict(x=0, y=0, z=0),
                 eye=dict(x=1.5, y=1.5, z=1.5)
-            )
+            ),
+            dragmode = 'orbit' # Enable 3D rotation
         ),
+        # Configuration for 2D view
         xaxis=dict(
             showgrid=True,
             gridwidth=1,
             gridcolor='LightGray',
             zeroline=True,
             zerolinewidth=1,
-            zerolinecolor='LightGray'
+            zerolinecolor='LightGray',
+            fixedrange = False # Enable zoom/pan
         ),
         yaxis=dict(
             showgrid=True,
@@ -306,8 +310,10 @@ def create_pca_visualizations(pca_df, agg_city_votes, filtered_df, initial_view=
             gridcolor='LightGray',
             zeroline=True,
             zerolinewidth=1,
-            zerolinecolor='LightGray'
-        )
+            zerolinecolor='LightGray',
+            fixedrange = False # Enable zoom/pan
+        ),
+        dragmode = 'zoom' # Enable zoom box in 2D
     )
 
     # Create similar figure for parties
@@ -405,8 +411,28 @@ def create_pca_visualizations(pca_df, agg_city_votes, filtered_df, initial_view=
                 up=dict(x=0, y=0, z=1),
                 center=dict(x=0, y=0, z=0),
                 eye=dict(x=1.5, y=1.5, z=1.5)
-            )
-        )
+            ),
+            dragmode = 'orbit' # Enable 3D rotation
+        ),
+        xaxis=dict(
+            showgrid = True,
+            gridwidth = 1,
+            gridcolor = 'LightGrey',
+            zeroline = True,
+            zerolinewidth = 1,
+            zerolinecolor = 'LightGrey',
+            fixedrange = False # Enable zoom/pan
+        ),
+        yaxis=dict(
+            showgrid = True,
+            gridwidth = 1,
+            gridcolor = 'LightGrey',
+            zeroline = True,
+            zerolinewidth = 1,
+            zerolinecolor = 'LightGrey',
+            fixedrange = False # Enable zoom/pan
+        ),
+        dragmode = 'zoom' # Enable zoom box in 2D
     )
 
     # Create and display tables
