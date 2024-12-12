@@ -1,45 +1,16 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-import io
-from designs import apply_theme, get_theme_names
-
 from Data_Manager import (
-    load_data,
+    load_uploaded_file,
     group_and_aggregate_data,
     remove_sparse_columns,
-    dimensionality_reduction
+    dimensionality_reduction,
+    create_2d_visualization,
+    create_3d_visualization,
+    create_variance_plot
 )
 
-def load_uploaded_file(uploaded_file) -> pd.DataFrame:
-    """Load data from an uploaded file object."""
-    file_extension = uploaded_file.name.split('.')[-1].lower()
-    file_obj = io.BytesIO(uploaded_file.getvalue())
-
-    if file_extension == 'csv':
-        return pd.read_csv(file_obj)
-    elif file_extension in ['xlsx', 'xls']:
-        return pd.read_excel(file_obj)
-    else:
-        raise ValueError("Unsupported file format. Please provide CSV or Excel file.")
-
-
 def main():
-    # Theme selector in sidebar
-    st.sidebar.header("App Settings")
-
-    # Theme selector
-    theme = st.sidebar.selectbox(
-        "Choose Theme",
-        get_theme_names(),
-        key="theme_selector"
-    )
-
-    # Apply selected theme
-    apply_theme(theme)
-
     st.title("Election Data Analysis Tool")
     st.sidebar.header("Analysis Parameters")
 
@@ -95,17 +66,21 @@ def main():
             # Process button
             if st.sidebar.button("Process Data"):
                 with st.spinner("Processing data..."):
-                    # Store processed data in session state
+                    # Process data using Data Manager functions
                     grouped_df = group_and_aggregate_data(df, group_by_col, agg_func)
                     filtered_df = remove_sparse_columns(grouped_df, threshold)
                     meta_columns = [group_by_col]
-                    st.session_state.processed_data = dimensionality_reduction(filtered_df, n_components, meta_columns)
+                    st.session_state.processed_data = dimensionality_reduction(
+                        filtered_df,
+                        n_components,
+                        meta_columns
+                    )
 
                     st.subheader("Analysis Results")
                     with st.expander("View Processed Data"):
                         st.dataframe(st.session_state.processed_data)
 
-            # Visualization section - only show if we have processed data
+            # Visualization section
             if st.session_state.processed_data is not None:
                 st.subheader("PCA Visualization")
 
@@ -113,59 +88,27 @@ def main():
                 tab1, tab2 = st.tabs(["2D Plot", "3D Plot"])
 
                 with tab1:
-                    fig_2d = px.scatter(
+                    fig_2d = create_2d_visualization(
                         st.session_state.processed_data,
-                        x='PC1',
-                        y='PC2',
-                        color=group_by_col,
-                        hover_data=[group_by_col],
-                        title=f"2D PCA Results grouped by {group_by_col}"
+                        group_by_col
                     )
                     st.plotly_chart(fig_2d, use_container_width=True)
 
                 with tab2:
                     if 'PC3' in st.session_state.processed_data.columns:
-                        fig_3d = px.scatter_3d(
+                        fig_3d = create_3d_visualization(
                             st.session_state.processed_data,
-                            x='PC1',
-                            y='PC2',
-                            z='PC3',
-                            color=group_by_col,
-                            hover_data=[group_by_col],
-                            title=f"3D PCA Results grouped by {group_by_col}"
+                            group_by_col
                         )
-
-                        fig_3d.update_traces(
-                            marker=dict(size=6),
-                            selector=dict(mode='markers')
-                        )
-
-                        fig_3d.update_layout(
-                            scene=dict(
-                                xaxis_title='PC1',
-                                yaxis_title='PC2',
-                                zaxis_title='PC3'
-                            ),
-                            width=800,
-                            height=800
-                        )
-
                         st.plotly_chart(fig_3d, use_container_width=True)
                     else:
                         st.warning(
-                            "3D visualization requires at least 3 principal components. Please increase the number of components in the sidebar.")
+                            "3D visualization requires at least 3 principal components. "
+                            "Please increase the number of components in the sidebar."
+                        )
 
                 # Show explained variance
-                variance_df = pd.DataFrame({
-                    'Component': [f'PC{i + 1}' for i in range(n_components)],
-                    'Explained Variance': np.random.uniform(0, 1, n_components)
-                })
-                variance_fig = px.bar(
-                    variance_df,
-                    x='Component',
-                    y='Explained Variance',
-                    title='Explained Variance by Principal Component'
-                )
+                variance_fig = create_variance_plot(n_components)
                 st.plotly_chart(variance_fig)
 
                 # Download button
@@ -179,7 +122,6 @@ def main():
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
-
 
 if __name__ == "__main__":
     main()

@@ -3,6 +3,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import io
 
 
 def load_data(filepath: str) -> pd.DataFrame:
@@ -22,6 +23,17 @@ def load_data(filepath: str) -> pd.DataFrame:
     else:
         raise ValueError("Unsupported file format. Please provide CSV or Excel file.")
 
+def load_uploaded_file(uploaded_file) -> pd.DataFrame:
+    """Load data from an uploaded file object."""
+    file_extension = uploaded_file.name.split('.')[-1].lower()
+    file_obj = io.BytesIO(uploaded_file.getvalue())
+
+    if file_extension == 'csv':
+        return pd.read_csv(file_obj)
+    elif file_extension in ['xlsx', 'xls']:
+        return pd.read_excel(file_obj)
+    else:
+        raise ValueError("Unsupported file format. Please provide CSV or Excel file.")
 
 def group_and_aggregate_data(df: pd.DataFrame,
                              group_by_column: str,
@@ -425,6 +437,61 @@ def create_pca_visualizations(pca_df, agg_city_votes, filtered_df, initial_view=
     print("\nSummary Statistics:")
     print(f"Number of cities analyzed: {len(pca_df)}")
     print(f"Number of parties analyzed: {len(party_pca)}")
+
+def create_2d_visualization(data: pd.DataFrame, group_by_col: str) -> go.Figure:
+    """Create 2D visualization using Plotly."""
+    fig = px.scatter(
+        data,
+        x='PC1',
+        y='PC2',
+        color=group_by_col,
+        hover_data=[group_by_col],
+        title=f"2D PCA Results grouped by {group_by_col}"
+    )
+    return fig
+
+def create_3d_visualization(data: pd.DataFrame, group_by_col: str) -> go.Figure:
+    """Create 3D visualization using Plotly."""
+    fig = px.scatter_3d(
+        data,
+        x='PC1',
+        y='PC2',
+        z='PC3',
+        color=group_by_col,
+        hover_data=[group_by_col],
+        title=f"3D PCA Results grouped by {group_by_col}"
+    )
+
+    fig.update_traces(
+        marker=dict(size=6),
+        selector=dict(mode='markers')
+    )
+
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='PC1',
+            yaxis_title='PC2',
+            zaxis_title='PC3'
+        ),
+        width=800,
+        height=800
+    )
+
+    return fig
+
+def create_variance_plot(n_components: int) -> go.Figure:
+    """Create explained variance plot."""
+    variance_df = pd.DataFrame({
+        'Component': [f'PC{i + 1}' for i in range(n_components)],
+        'Explained Variance': np.random.uniform(0, 1, n_components)
+    })
+
+    return px.bar(
+        variance_df,
+        x='Component',
+        y='Explained Variance',
+        title='Explained Variance by Principal Component'
+    )
 
 
 if __name__ == '__main__':
