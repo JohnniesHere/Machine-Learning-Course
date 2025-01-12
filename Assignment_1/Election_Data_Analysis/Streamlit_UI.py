@@ -158,7 +158,7 @@ def main():
                 buffer.seek(0)
 
                 st.download_button(
-                    label="Download Data (UTF-8 with BOM)",
+                    label="Download Data",
                     data=buffer,
                     file_name="processed_election_data.csv",
                     mime="text/csv"
