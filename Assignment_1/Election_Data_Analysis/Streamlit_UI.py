@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from Data_Manager import (
     load_uploaded_file,
     group_and_aggregate_data,
@@ -40,7 +41,7 @@ def main():
 
             group_by_col = st.sidebar.selectbox(
                 "Group by Column",
-                df.columns.drop('ballot_code').tolist()
+                df.columns.tolist()
             )
 
             agg_func = st.sidebar.selectbox(
@@ -55,16 +56,12 @@ def main():
                 step=100
             )
 
-            n_components =int(st.sidebar.radio(
+            n_components = st.sidebar.slider(
                 "Number of Principal Components",
-                [2,3]
-            ))
-            # n_components = st.sidebar.slider(
-            #     "Number of Principal Components",
-            #     min_value=2,
-            #     max_value=min(10, len(df.columns) - 2),
-            #     value=3
-            # )
+                min_value=2,
+                max_value=min(10, len(df.columns) - 2),
+                value=3
+            )
 
             # Process button
             if st.sidebar.button("Process Data"):

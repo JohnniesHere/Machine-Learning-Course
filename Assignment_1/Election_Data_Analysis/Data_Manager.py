@@ -157,10 +157,11 @@ def create_pca_visualizations(agg_city_votes, filtered_df):
     """
     # Prepare party data - filter parties with >= 1000 votes
     party_data = agg_city_votes.set_index('city_name').transpose()
+    party_data = party_data.drop('ballot_code')
     party_data = party_data.loc[:, party_data.sum() >= 1000]
 
     # Create city PCA data
-    city_pca = dimensionality_reduction(filtered_df, 2, ['city_name'])
+    city_pca = dimensionality_reduction(filtered_df, 2, ['city_name', 'ballot_code'])
 
     # Create party PCA data
     party_pca = dimensionality_reduction(
