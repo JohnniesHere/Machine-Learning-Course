@@ -92,31 +92,12 @@ The tool expects election data with the following columns:
 - ballot_code: Unique identifier for each ballot
 - party_*: Multiple columns with vote counts for each party
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/new-feature`)
-5. Create a Pull Request
-
-## License
-[Add your chosen license]
-
 ## Authors
-- [Group Member A]
-- [Group Member B]
-- [Group Member C]
-
-## Acknowledgments
-- Thanks to [Any acknowledgments or data sources]
-- Built using Plotly and Streamlit frameworks
-
-## Contact
-For questions and feedback, please contact [contact information]
+- Jonathan Elgarisi
+- Tomer Levi
+- Hagi Debby 
 
 ## Notes
 - The tool is optimized for Hebrew text handling
 - Recommended minimum threshold for party votes is 100,000
 - Visualization options include both 2D and 3D views
-
-Would you like me to expand on any section or add additional information?
