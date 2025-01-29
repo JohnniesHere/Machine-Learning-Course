@@ -1,8 +1,12 @@
 from linear_regression import compute_linear_regression
 import numpy as np
 
+VERBOSE = False
+
 
 def noisy_case():
+    if VERBOSE:
+        print("Noisy case")
     X = np.array(
         [
             [-2.912, 8.045],
@@ -24,19 +28,31 @@ def noisy_case():
             X, y, alpha=0.01, max_iterations=10_000
         )
     except Exception as e:
+        if VERBOSE:
+            print(e)
         return 0
     weight_diff = np.sqrt(np.mean(np.subtract(weights, ref_weights) ** 2))
-    if weight_diff < 1e-3:
+    if VERBOSE:
+        print(f"Weight difference: {weight_diff}")
+    if weight_diff < 0.06:
         return 100
-    elif weight_diff < 1e-2:
+    elif weight_diff < 5e-2:
+        if VERBOSE:
+            print("90")
         return 90
-    elif weight_diff < 1e-1:
+    elif weight_diff < 5e-1:
+        if VERBOSE:
+            print("80")
         return 80
     else:
+        if VERBOSE:
+            print("50")
         return 50
 
 
 def simple_case():
+    if VERBOSE:
+        print("Simple case")
     X = np.array(
         [
             [-3, 8],
@@ -58,15 +74,27 @@ def simple_case():
             X, y, alpha=0.01, max_iterations=10_000
         )
     except Exception as e:
+        if VERBOSE:
+            print(e)
         return 0
     weight_diff = np.sqrt(np.mean(np.subtract(weights, ref_weights) ** 2))
+    if VERBOSE:
+        print(f"Weight difference: {weight_diff}")
     if weight_diff < 5e-4:
+        if VERBOSE:
+            print("100")
         return 100
     elif weight_diff < 1e-3:
+        if VERBOSE:
+            print("90")
         return 90
     elif weight_diff < 2e-2:
+        if VERBOSE:
+            print("80")
         return 80
     else:
+        if VERBOSE:
+            print("50")
         return 50
 
 
@@ -76,5 +104,5 @@ if __name__ == "__main__":
         simple_case(),
     ]
     grade = sum(grades) / len(grades)
-    print(grade)
-    print(grades)
+    print(f"Grades: {grades}")
+    print(f"Grade: {grade}")
